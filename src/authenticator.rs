@@ -17,7 +17,7 @@ use crate::{env::get_pam_env, ffi, Converse, PamError, PamResult, PasswordConv};
 /// ```no_run
 /// use pam::Authenticator;
 ///
-/// let mut authenticator = Authenticator::with_password("system-auth")
+/// let mut authenticator = Authenticator::with_password("system-auth", None)
 ///         .expect("Failed to init PAM client.");
 /// // Preset the login & password we will use for authentication
 /// authenticator.get_handler().set_credentials("login", "password");
@@ -46,19 +46,19 @@ pub struct Authenticator<'a, C: Converse> {
 
 impl<'a> Authenticator<'a, PasswordConv> {
     /// Create a new `Authenticator` with a given service name and a password-based conversation
-    pub fn with_password(service: &str) -> PamResult<Authenticator<'a, PasswordConv>> {
-        Authenticator::with_handler(service, PasswordConv::new())
+    pub fn with_password(service: &str, user: Option<&str>) -> PamResult<Authenticator<'a, PasswordConv>> {
+        Authenticator::with_handler(service, PasswordConv::new(), user)
     }
 }
 
 impl<'a, C: Converse> Authenticator<'a, C> {
     /// Creates a new Authenticator with a given service name and conversation callback
-    pub fn with_handler(service: &str, converse: C) -> PamResult<Authenticator<'a, C>> {
+    pub fn with_handler(service: &str, converse: C, user: Option<&str>) -> PamResult<Authenticator<'a, C>> {
         let mut converse = Box::new(converse);
         let conv = ffi::make_conversation(&mut *converse);
         let mut handle: *mut PamHandle = ptr::null_mut();
 
-        match start(service, None, &conv, &mut handle) {
+        match start(service, user, &conv, &mut handle) {
             PamReturnCode::SUCCESS => unsafe {
                 Ok(Authenticator {
                     close_on_drop: true,

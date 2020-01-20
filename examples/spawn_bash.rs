@@ -23,7 +23,7 @@ fn main() {
 
     // Now, setup the authenticator, we require the basic "system-auth" service
     let mut authenticator =
-        Authenticator::with_password("system-auth").expect("Failed to init PAM client!");
+        Authenticator::with_password("system-auth", None).expect("Failed to init PAM client!");
     authenticator
         .get_handler()
         .set_credentials(login.clone(), password);
